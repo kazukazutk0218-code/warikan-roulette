@@ -274,6 +274,9 @@ export default function App() {
           )}
         </div>
       )}
+      <footer style={{ textAlign: "center", padding: "16px 20px 32px" }}>
+        <a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", textDecoration: "none", letterSpacing: 1 }}>プライバシーポリシー</a>
+      </footer>
     </div>
   );
 }
