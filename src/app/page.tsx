@@ -15,7 +15,7 @@ function getRandomEmoji() {
 const MODES = [
   { id: "with_zero_hundred", label: "0・100%あり", desc: "誰かが全額 or タダになる可能性あり", icon: "🎲", color: "#FF6B6B" },
   { id: "without_zero_hundred", label: "0・100%なし", desc: "最低5%〜最大95%の範囲でランダム", icon: "⚖️", color: "#4D96FF" },
-  { id: "max20", label: "不平等幅20%まで", desc: "均等に近い。最大差が20%以内", icon: "🤝", color: "#6BCB77" },
+  { id: "max20", label: "わりと平等", desc: "均等に近い。最大差が20%以内", icon: "🤝", color: "#6BCB77" },
   { id: "omakase", label: "おまかせ", desc: "上3種からランダムで選ばれる…何が起きるか不明", icon: "🎰", color: "#FFD93D" },
 ];
 
@@ -107,10 +107,13 @@ export default function App() {
   const [usedMode, setUsedMode] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
+  const [noRemainder, setNoRemainder] = useState(true);
+  const [roundUnit, setRoundUnit] = useState<"100" | "1000">("100");
   const animFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
-  const segments = getSegments(ratios.length > 0 ? ratios : names.map(() => 1 / names.length));
+  const equalSegments = getSegments(names.map(() => 1 / names.length));
+  const ratioSegments = getSegments(ratios.length > 0 ? ratios : names.map(() => 1 / names.length));
   const addName = () => {
     const n = newName.trim();
     if (n && names.length < 10 && !names.includes(n)) { setNames([...names, n]); setNewName(""); }
@@ -138,7 +141,12 @@ export default function App() {
   };
 
   const reset = () => { setStep("setup"); setRatios([]); setUsedMode(null); setRotation(0); };
-  const amounts = ratios.map(r => Math.round(Number(totalAmount) * r));
+  const amounts = ratios.map(r => {
+    const raw = Number(totalAmount) * r;
+    if (!noRemainder) return Math.round(raw);
+    const unit = roundUnit === "1000" ? 1000 : 100;
+    return Math.round(raw / unit) * unit;
+  });
   const revealedMode = usedMode ? MODES.find(m => m.id === usedMode) : null;
 
   return (
@@ -217,6 +225,23 @@ export default function App() {
               })}
             </div>
           </div>
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 12, letterSpacing: 2 }}>端数設定</div>
+            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginBottom: noRemainder ? 12 : 0 }}>
+              <input type="checkbox" checked={noRemainder} onChange={e => setNoRemainder(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#6BCB77", cursor: "pointer" }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>端数なし</span>
+            </label>
+            {noRemainder && (
+              <div style={{ display: "flex", gap: 16, marginLeft: 28 }}>
+                {(["100", "1000"] as const).map(unit => (
+                  <label key={unit} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                    <input type="radio" name="roundUnit" value={unit} checked={roundUnit === unit} onChange={() => setRoundUnit(unit)} style={{ accentColor: "#6BCB77", cursor: "pointer" }} />
+                    <span style={{ fontSize: 13, color: roundUnit === unit ? "white" : "rgba(255,255,255,0.5)" }}>{unit}円単位</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
           <div style={{ textAlign: "center" }}>
             <button className="spin-btn" onClick={spin} disabled={!totalAmount || names.length < 2}>🎰 ルーレット スタート</button>
             {(!totalAmount || names.length < 2) && <div style={{ marginTop: 12, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>{!totalAmount ? "金額を入力してください" : "参加者を2人以上追加してください"}</div>}
@@ -238,7 +263,7 @@ export default function App() {
               </div>
             )}
           </div>
-          <RouletteWheel segments={segments} names={names} rotation={rotation} spinning={spinning} />
+          <RouletteWheel segments={step === "result" ? ratioSegments : equalSegments} names={names} rotation={rotation} spinning={spinning} />
           {spinning && <div style={{ textAlign: "center", marginTop: 24 }}><div style={{ fontSize: 16, letterSpacing: 3, color: "rgba(255,255,255,0.6)", fontFamily: "'Bebas Neue', sans-serif", animation: "float 0.8s ease-in-out infinite" }}>SPINNING...</div></div>}
           {step === "result" && (
             <div style={{ marginTop: 28 }}>
