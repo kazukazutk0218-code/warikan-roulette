@@ -123,8 +123,21 @@ export default function App() {
   const spin = () => {
     if (spinning || names.length < 2) return;
     const { ratios: generated, effectiveMode } = generateWeights(names.length, selectedMode);
+
+    // 最大負担者のセグメント中央に矢印が止まるよう totalRotation を計算
+    const maxIdx = generated.indexOf(Math.max(...generated));
+    const n = names.length;
+    const segSize = 360 / n;
+    const randomOffset = (Math.random() - 0.5) * segSize * 0.6;
+    const targetMid = (maxIdx + 0.5) * segSize + randomOffset;
+    // 矢印は右端(90°)固定。wheel上のtargetMidが90°の位置に来るには:
+    // targetMid + targetRot ≡ 90 (mod 360) => targetRot ≡ 90 - targetMid (mod 360)
+    const currentAngle = ((rotation % 360) + 360) % 360;
+    const desiredAngle = ((90 - targetMid) % 360 + 360) % 360;
+    const delta = ((desiredAngle - currentAngle) % 360 + 360) % 360;
+    const totalRotation = 4 * 360 + delta + Math.floor(Math.random() * 3) * 360;
+
     setRatios(generated); setUsedMode(effectiveMode); setStep("spinning"); setSpinning(true);
-    const totalRotation = 1440 + Math.random() * 720;
     const targetRot = rotation + totalRotation;
     const duration = 3500 + Math.random() * 1000;
     startTimeRef.current = null;
@@ -229,7 +242,7 @@ export default function App() {
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 12, letterSpacing: 2 }}>端数設定</div>
             <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginBottom: noRemainder ? 12 : 0 }}>
               <input type="checkbox" checked={noRemainder} onChange={e => setNoRemainder(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#6BCB77", cursor: "pointer" }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>端数なし</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>端数なし（1円単位）</span>
             </label>
             {noRemainder && (
               <div style={{ display: "flex", gap: 16, marginLeft: 28 }}>
