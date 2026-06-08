@@ -154,12 +154,17 @@ export default function App() {
   };
 
   const reset = () => { setStep("setup"); setRatios([]); setUsedMode(null); setRotation(0); };
-  const amounts = ratios.map(r => {
-    const raw = Number(totalAmount) * r;
+  const total = Number(totalAmount);
+  const roundedAmounts = ratios.map(r => {
+    const raw = total * r;
     if (!noRemainder) return Math.round(raw);
     const unit = roundUnit === "1000" ? 1000 : 100;
     return Math.round(raw / unit) * unit;
   });
+  const othersSum = roundedAmounts.slice(0, -1).reduce((a, b) => a + b, 0);
+  const amounts = roundedAmounts.length > 0
+    ? [...roundedAmounts.slice(0, -1), total - othersSum]
+    : [];
   const revealedMode = usedMode ? MODES.find(m => m.id === usedMode) : null;
 
   return (
