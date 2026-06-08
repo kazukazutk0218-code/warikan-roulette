@@ -242,7 +242,7 @@ export default function App() {
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 12, letterSpacing: 2 }}>端数設定</div>
             <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginBottom: noRemainder ? 12 : 0 }}>
               <input type="checkbox" checked={noRemainder} onChange={e => setNoRemainder(e.target.checked)} style={{ width: 18, height: 18, accentColor: "#6BCB77", cursor: "pointer" }} />
-              <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>端数なし（1円単位）</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>端数なし</span>
             </label>
             {noRemainder && (
               <div style={{ display: "flex", gap: 16, marginLeft: 28 }}>
